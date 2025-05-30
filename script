@@ -1,0 +1,88 @@
+// === CONFIG ===
+const SLACK_WEBHOOK_URL = 'Webhookurlhere';
+const DOMAIN = 'domainnamehere';
+
+function autoCleanSuspendedUsers() {
+  const pageSize = 100;
+  let pageToken;
+  let deletedUsers = [];
+
+  do {
+    const response = AdminDirectory.Users.list({
+      domain: DOMAIN,
+      maxResults: pageSize,
+      pageToken: pageToken,
+      query: 'isSuspended=true'
+    });
+
+    const users = response.users || [];
+    users.forEach(user => {
+      const email = user.primaryEmail;
+
+      // Skip archived users
+      if (user.archived) {
+        Logger.log(`Skipping archived user: ${email}`);
+        return;
+      }
+
+      try {
+        Logger.log(`Processing suspended user: ${email}`);
+        removeUserFromGroups(email);
+        AdminDirectory.Users.remove(email);
+        deletedUsers.push(email);
+        Logger.log(`Deleted user: ${email}`);
+      } catch (e) {
+        Logger.log(`Error processing ${email}: ${e.message}`);
+      }
+    });
+
+    pageToken = response.nextPageToken;
+  } while (pageToken);
+
+  const summary = generateSlackSummary(deletedUsers);
+  postToSlack(summary);
+  Logger.log(`Cleanup complete. Deleted users: ${deletedUsers.join(', ')}`);
+}
+
+function removeUserFromGroups(userEmail) {
+  let pageToken;
+  do {
+    const response = AdminDirectory.Groups.list({
+      userKey: userEmail,
+      pageToken: pageToken
+    });
+
+    const groups = response.groups || [];
+    groups.forEach(group => {
+      try {
+        AdminDirectory.Members.remove(group.id, userEmail);
+        Logger.log(`Removed ${userEmail} from group ${group.email}`);
+      } catch (e) {
+        Logger.log(`Failed to remove ${userEmail} from ${group.email}: ${e.message}`);
+      }
+    });
+
+    pageToken = response.nextPageToken;
+  } while (pageToken);
+}
+
+function generateSlackSummary(userList) {
+  if (userList.length === 0) {
+    return `✅ Midnight cleanup complete — no suspended (non-archived) users found.`;
+  }
+
+  return `🧹 *Midnight Cleanup Summary*\nRemoved and deleted the following suspended users (non-archived):\n• ` + userList.join('\n• ');
+}
+
+function postToSlack(message) {
+  const payload = JSON.stringify({ text: message });
+
+  const options = {
+    method: 'POST',
+    contentType: 'application/json',
+    payload: payload,
+    muteHttpExceptions: true
+  };
+
+  UrlFetchApp.fetch(SLACK_WEBHOOK_URL, options);
+}
