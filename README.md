@@ -39,3 +39,25 @@ In the script, replace:
 ```javascript
 const DOMAIN = 'domainnamehere';
 const SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/XXXXXXXXX/XXXXXXXXX/XXXXXXXXXX';
+
+You can create a Slack webhook via Slack → Apps → Incoming Webhooks → Add Configuration
+
+4. Set a Daily Trigger
+Go to the Triggers tab (🕒)
+
+Click + Add Trigger
+
+Function: autoCleanSuspendedUsers
+
+Event Source: Time-driven
+
+Type: Day timer
+
+Time: Midnight to 1am
+
+5. Authorize Permissions
+Click the Run button once to authorize the script
+
+Use a super admin Google Workspace account
+
+
