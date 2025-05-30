@@ -37,5 +37,5 @@ Go to **Extensions → Services** and add:
 In the script, replace:
 
 ```javascript
-const DOMAIN = 'airfinity.com';
+const DOMAIN = 'domainnamehere';
 const SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/XXXXXXXXX/XXXXXXXXX/XXXXXXXXXX';
