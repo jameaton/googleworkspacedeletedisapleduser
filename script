@@ -1,5 +1,5 @@
 // === CONFIG ===
-const SLACK_WEBHOOK_URL = 'Webhookurlhere';
+const SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/XXXXXXXXX/XXXXXXXXX/XXXXXXXXXX';
 const DOMAIN = 'domainnamehere';
 
 function autoCleanSuspendedUsers() {
